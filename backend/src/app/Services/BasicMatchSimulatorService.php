@@ -8,31 +8,39 @@ use App\Models\Team;
 class BasicMatchSimulatorService implements MatchSimulatorInterface
 {
 
-    private const BASE_GOALS_FACTOR = 0.05;
-    private const STRENGTH_FACTOR = 0.015;
-    private const HOME_ADVANTAGE = 0.1;
-    private const MAX_GOALS_PER_TEAM = 6;
+    private readonly float $baseGoalsFactor;
+    private readonly float $strengthFactor;
+    private readonly float $homeAdvantage;
+    private readonly int $maxGoalsPerTeam;
+
+    public function __construct()
+    {
+        $this->baseGoalsFactor = (float) config('simulation.basic_simulator.base_goals_factor', 0.05);
+        $this->strengthFactor = (float) config('simulation.basic_simulator.strength_factor', 0.015);
+        $this->homeAdvantage = (float) config('simulation.basic_simulator.home_advantage', 0.1);
+        $this->maxGoalsPerTeam = (int) config('simulation.basic_simulator.max_goals_per_team', 6);
+    }
 
     public function simulate(Team $homeTeam, Team $awayTeam): array
     {
         $homeStrength = $homeTeam->strength;
         $awayStrength = $awayTeam->strength;
 
-        $homeExpectedGoals = self::BASE_GOALS_FACTOR
-            + ($homeStrength * self::STRENGTH_FACTOR)
-            + (($homeStrength - $awayStrength) * self::STRENGTH_FACTOR / 2)
-            + self::HOME_ADVANTAGE;
+        $homeExpectedGoals = $this->baseGoalsFactor
+            + ($homeStrength * $this->strengthFactor)
+            + (($homeStrength - $awayStrength) * $this->strengthFactor / 2)
+            + $this->homeAdvantage;
 
-        $awayExpectedGoals = self::BASE_GOALS_FACTOR
-            + ($awayStrength * self::STRENGTH_FACTOR)
-            + (($awayStrength - $homeStrength) * self::STRENGTH_FACTOR / 2);
+        $awayExpectedGoals = $this->baseGoalsFactor
+            + ($awayStrength * $this->strengthFactor)
+            + (($awayStrength - $homeStrength) * $this->strengthFactor / 2);
 
         $homeGoals = $this->generateGoals($homeExpectedGoals);
         $awayGoals = $this->generateGoals($awayExpectedGoals);
 
         return [
-            min($homeGoals, self::MAX_GOALS_PER_TEAM),
-            min($awayGoals, self::MAX_GOALS_PER_TEAM),
+            min($homeGoals, $this->maxGoalsPerTeam),
+            min($awayGoals, $this->maxGoalsPerTeam),
         ];
     }
 

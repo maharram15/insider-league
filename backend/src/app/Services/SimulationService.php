@@ -5,6 +5,7 @@ namespace app\Services;
 use App\Contracts\MatchSchedulerInterface;
 use App\Contracts\MatchSimulatorInterface;
 use App\Contracts\Services\LeagueServiceInterface;
+use App\DTO\SimulationResultDto;
 use App\Exceptions\SimulationException;
 use App\Models\FootballMatch;
 use App\Models\LeagueStanding;
@@ -52,23 +53,31 @@ class SimulationService
     /**
      * @return array
      */
-    public function simulateNextWeek(): array
+    public function simulateNextWeek(): SimulationResultDto
     {
         $nextWeek = $this->getNextWeekToSimulate();
 
         if ($nextWeek === null) {
-            return ['success' => false, 'message' => 'All weeks have already been played.', 'week_simulated' => null];
+            return new SimulationResultDto(
+                success: false,
+                message: 'All weeks have already been played.',
+                weekSimulated: null,
+                statusCode: 400
+            );
         }
-
-        Log::info("Start {$nextWeek}th week");
 
         $matches = $this->scheduler->scheduleMatchesForWeek($nextWeek);
 
         if ($matches === null || $matches->isEmpty()) {
             Log::error("Failed to retrieve matches for week {$nextWeek}.");
-            return ['success' => false, 'message' => "Failed to retrieve or generate matches for week {$nextWeek}.", 'week_simulated' => null];        }
+            return new SimulationResultDto(
+                success: false,
+                message: "Failed to retrieve or generate matches for week {$nextWeek}",
+                weekSimulated: null,
+                statusCode: 500
+            );
+        }
 
-        $playedMatchesCount = 0;
         DB::beginTransaction();
         try {
             foreach ($matches as $match) {
@@ -84,26 +93,29 @@ class SimulationService
                 $match->save();
 
                 $this->leagueService->updateStandings($match);
-                $playedMatchesCount++;
             }
 
             DB::commit();
-            Log::info("Week {$nextWeek} successfully simulated. Matches played: {$playedMatchesCount}.");
-            return [
-                'success' => true,
-                'message' => "Week {$nextWeek} successfully simulated.",
-                'week_simulated' => $nextWeek
-            ];
+            $successMessage = "Week {$nextWeek} successfully simulated.";
+
+            return new SimulationResultDto(
+                success: true,
+                message: $successMessage,
+                weekSimulated: $nextWeek,
+                statusCode: 200
+            );
+
 
         } catch (Exception $e) {
             DB::rollBack();
             Log::error("Error during simulation of week {$nextWeek}: " . $e->getMessage());
             Log::error($e->getTraceAsString());
-            return [
-                'success' => false,
-                'message' => "An error occurred during the simulation of week {$nextWeek}: " . $e->getMessage(),
-                'week_simulated' => null
-            ];
+            return new SimulationResultDto(
+                success: false,
+                message: $e->getMessage(),
+                weekSimulated: null,
+                statusCode: 500
+            );
         }
     }
 

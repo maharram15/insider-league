@@ -29,11 +29,7 @@ class MatchSchedulerService implements MatchSchedulerInterface
 
     public function getTotalWeeks(): int
     {
-        if ($this->totalWeeks === null) {
-            $teamsCount = Team::count();
-            $this->totalWeeks = ($teamsCount % 2 === 0) ? ($teamsCount - 1) * 2 : $teamsCount * 2;
-        }
-        return $this->totalWeeks;
+        return $this->totalWeeks ??= (Team::count() % 2 === 0 ? Team::count() - 1 : Team::count()) * 2;
     }
 
     public function isScheduleGenerated(): bool
@@ -50,7 +46,7 @@ class MatchSchedulerService implements MatchSchedulerInterface
             return;
         }
 
-        $teams = Team::all()->shuffle();
+        $teams = Team::query()->inRandomOrder()->get();
         $teamsCount = $teams->count();
 
         if ($teamsCount < 2) {

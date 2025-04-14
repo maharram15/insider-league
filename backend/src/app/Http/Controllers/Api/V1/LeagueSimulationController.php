@@ -48,8 +48,7 @@ class LeagueSimulationController extends Controller
             ]);
         }
 
-        $statusCode = str_contains($result['message'], 'Все недели уже сыграны') || str_contains($result['message'], 'Не удалось получить матчи') ? 400 : 500;
-        return response()->json(['message' => $result['message']], $statusCode);
+        return response()->json(['message' => $result['message']], $result->statusCode ?? 500);
     }
 
     public function simulateAllRemainingWeeks(): JsonResponse
@@ -65,7 +64,7 @@ class LeagueSimulationController extends Controller
         return response()->json(['message' => $result['message']], 500);
     }
 
-    public function resetSimulation(Request $request): JsonResponse
+    public function resetSimulation(): JsonResponse
     {
         $result = $this->simulationService->resetSimulation();
 
