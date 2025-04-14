@@ -11,8 +11,8 @@ services:
       - redis
     volumes:
       - '../backend/src/:/var/www/html'
-      - './storage/todo/:/var/www/html/storage/app'
-      - './logs/todo/logs:/var/www/html/storage/logs'
+      - './storage/insider/:/var/www/html/storage/app'
+      - './logs/insider/logs:/var/www/html/storage/logs'
     restart: always
     env_file:
       - .env
