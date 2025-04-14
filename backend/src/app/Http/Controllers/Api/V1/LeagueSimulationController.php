@@ -28,10 +28,8 @@ class LeagueSimulationController extends Controller
         $standingsByWeekResource = $groupedStandings->mapWithKeys(function ($weeklyStandings, $weekNumber) {
             return [$weekNumber => LeagueStandingResource::collection($weeklyStandings)];
         });
-        $maxWeek = LeagueStanding::max('week') ?? 0;
 
         return response()->json([
-            'current_week' => $maxWeek,
             'current_standings' => $standingsByWeekResource,
             'played_matches' => $playedMatches,
         ]);
