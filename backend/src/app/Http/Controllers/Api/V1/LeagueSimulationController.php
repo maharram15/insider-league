@@ -39,14 +39,14 @@ class LeagueSimulationController extends Controller
     {
         $result = $this->simulationService->simulateNextWeek();
 
-        if ($result['success']) {
+        if ($result->success) {
             return response()->json([
-                'message' => $result['message'],
-                'week_simulated' => $result['week_simulated']
+                'message' => $result->message,
+                'week_simulated' => $result->weekSimulated
             ]);
         }
 
-        return response()->json(['message' => $result['message']], $result->statusCode ?? 500);
+        return response()->json(['message' => $result->message], $result->statusCode ?? 500);
     }
 
     public function simulateAllRemainingWeeks(): JsonResponse
