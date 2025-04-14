@@ -66,11 +66,11 @@ class LeagueSimulationController extends Controller
     {
         $result = $this->simulationService->resetSimulation();
 
-        if ($result['success']) {
-            return response()->json(['message' => $result['message']]);
+        if ($result->success) {
+            return response()->json(['message' => $result->message]);
         }
 
-        return response()->json(['message' => $result['message']], 500);
+        return response()->json(['message' => $result->message], 500);
     }
 
 }

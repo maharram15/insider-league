@@ -170,7 +170,7 @@ class SimulationService
     /**
      * @return array
      */
-    public function resetSimulation(): array
+    public function resetSimulation(): SimulationResultDto
     {
         DB::beginTransaction();
         try {
@@ -200,7 +200,12 @@ class SimulationService
                 ]);
 
             DB::commit();
-            return ['success' => true, 'message' => 'Simulation successfully reset.'];
+            return new SimulationResultDto(
+                success: true,
+                message: 'Simulation reset successfully.',
+                weekSimulated: null,
+                statusCode: 200
+            );
 
         } catch (\Throwable $e) {
             DB::rollBack();
