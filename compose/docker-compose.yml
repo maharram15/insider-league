@@ -1,0 +1,67 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    image: insider_league:latest
+    links:
+      - postgres
+      - redis
+    volumes:
+      - '../backend/src/:/var/www/html'
+      - './storage/todo/:/var/www/html/storage/app'
+      - './logs/todo/logs:/var/www/html/storage/logs'
+    restart: always
+    env_file:
+      - .env
+    environment:
+      - "DB_DATABASE=db"
+      - "DB_USERNAME=user"
+      - "DB_PASSWORD=password"
+      #- "POSTGRES_HOST_AUTH_METHOD=trust"  # Consider removing this and setting a password
+    ports:
+      - '8080:80'
+    networks:
+      - amin
+
+  postgres:
+    image: postgres:14
+    restart: always
+    env_file:
+      - .env
+    environment:
+      PGDATA: "/var/lib/postgresql/data/"
+      POSTGRES_DB: db
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    volumes:
+      - ./data/postgres/:/var/lib/postgresql/data/
+      - ./dumps:/dumps
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-q", "-d", "db", "-U", "user" ]
+      retries: 3
+      timeout: 5s
+    networks:
+      - amin
+
+  redis:
+    image: 'redis:alpine'
+    volumes:
+      - './data/redis:/data'
+    ports:
+      - '6379:6379'
+    command: [ "redis-server", "--maxmemory 2048mb", "--maxmemory-policy allkeys-lru" ]
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      retries: 3
+      timeout: 5s
+    networks:
+      - amin
+
+networks:
+  amin:
+    external: true

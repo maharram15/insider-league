@@ -1,0 +1,6 @@
+data/
+logs/
+storage/
+.env
+.idea/
+dumps/
