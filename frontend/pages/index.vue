@@ -81,10 +81,8 @@ export default {
       }
     },
   },
-  mounted() {
-    this.loadLeagueTable().catch(err => {
-      this.error = err.message || 'Failed to load league table.';
-    });
+  async mounted() {
+    await this.loadLeagueTable()
   }
 }
 </script>
